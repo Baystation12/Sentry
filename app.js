@@ -1,0 +1,528 @@
+var express = require('express');
+var bodyParser = require('body-parser');
+var mysql = require('mysql');
+var flash = require('connect-flash');
+var passport = require('passport');
+var exphbs = require('express-handlebars');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var bcrypt = require('bcryptjs');
+var app = express();
+var promise = require('promise');
+//var FileStore = require('session-file-store')(session);
+require('shelljs/global');
+
+var fs = require('fs');
+var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+
+
+var pool = mysql.createPool({
+    connectionLimit: config.mysql_limit,
+    host: config.mysql_host,
+    user: config.mysql_user,
+    database: config.mysql_db,
+    password: config.mysql_password
+});
+console.log(config);
+
+app.use(bodyParser.urlencoded({
+    extended: false
+}))
+
+
+
+// parse application/json
+app.use(bodyParser.json())
+app.use(cookieParser());
+
+app.use(session({
+    secret: 'ilovescotchscotchyscotchscotch',
+    saveUninitialized: false,
+    resave: false
+})); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash()); // use connect-flash for flash messages stored in session
+
+app.use(express.static(__dirname + '/public'));
+app.use("/player", express.static(__dirname + '/public'));
+app.set('view engine', 'handlebars');
+
+require('./handlebars.js')(exphbs, app);
+var User = new(require("./modules/user.js"))(pool, passport, bcrypt);
+var Logger = new(require("./modules/logger.js"))(pool);
+
+require("./routes/user.js")(app, passport, User, pool);
+require("./routes/logs.js")(app, pool);
+
+
+
+
+_running_update = false;
+
+
+
+
+
+app.get("/view-logs",function(req,res) {
+    if(!req.user) {
+        res.redirect("/")
+        return;
+    };
+    res.render("viewlog",{user:req.user});
+});
+
+
+app.get('/', function (req, res) {
+    var flash = req.flash();
+    if (!req.user) {
+        var error = flash["error"];
+        res.render("index", {
+            error: error
+        });
+    } else {
+        res.render("dashboard", {
+            user: req.user
+        });
+    }
+});
+
+
+app.get('/player', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.redirect("/");
+        return;
+    }
+    res.render("playersearch", {
+        user: req.user
+    });
+});
+app.options('/player/:key');
+app.get('/player/:key', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.redirect("/");
+        return;
+    }
+    if (!req.params.key) {
+        res.redirect("/player");
+    } else {
+        if (req.params.key)
+            res.render("player", {
+                ckey: req.params.key.charAt(0).toUpperCase() + req.params.key.slice(1),
+                user: req.user
+            });
+    }
+});
+
+var isRunning = function () {
+    return new promise(function (fulfill, reject) {
+        var running = require('is-running')
+        fs.stat(config.pid_file,
+            function (err, stats) {
+                if (err) {
+                    return fulfill({
+                        server: false
+                    });
+                }
+                fs.readFile(config.pid_file, function (err, data) {
+                    return fulfill({
+                        server: running(data)
+                    });
+                });
+            });
+    });
+};
+
+app.get('/is-server-alive', function (req, res) {
+    isRunning().done(function(data) {
+        res.send(data);
+    });
+});
+app.get('/start-server',function(req,res) {
+    if (!req.user) {
+        res.sendStatus(403);
+        return;
+    }
+    isRunning().done(function(data) {
+        if(data.server)
+        {
+            res.send({success:false,message:"Server is already running.."});
+            return;
+        }
+        Logger.log(req.user, req.user.username + " has started the server..")
+        exec('sh '+config.start_script,{async:true,silent:true});
+        res.send({success:true,message:"Server has been started."});
+        
+    });
+});
+app.get('/stop-server',function(req,res) {
+    if (!req.user) {
+        res.sendStatus(403);
+        return;
+    }
+    isRunning().done(function(data) {
+        if(!data.server)
+        {
+            res.send({success:false,message:"Server is already stopped..."});
+            return;
+        }
+        Logger.log(req.user, req.user.username + " has stopped the server..")
+        exec('sh '+config.stop_script,{async:true,silent:true},function (code,out,err) {
+            console.log(out);
+            console.log(code);
+            if(code === 0)
+            {
+                Logger.
+                res.send({success:true,message:"Server has been stopped"});
+            }
+            else
+            {
+                res.send({success:false,message:"The server has not been stopped"});
+            }
+        });
+        
+    });
+});
+app.get('/current-commit', function (req, res) {
+    if (!req.user) {
+        res.sendStatus(403);
+        return;
+    }
+    var Git = require("nodegit");
+
+    var getMostRecentCommit = function (repository) {
+        return repository.getHeadCommit();
+    };
+
+    var getCommitMessage = function (commit) {
+        return {message:commit.summary(),date:commit.date(),sha:commit.sha()};
+    };
+
+    Git.Repository.open(config.git_path)
+        .then(getMostRecentCommit)
+        .then(getCommitMessage)
+        .then(function (message) {
+            res.send(message);
+        });
+
+
+});
+app.get('/update-server', function (req, res) {
+    if (!req.user) {
+        res.sendStatus(403);
+        return;
+    }
+    if(_running_update)
+    {
+        res.send({success:false,message:"Server is already being updated"});
+        return;
+    }
+    isRunning().done(function(data) {
+        if(data.server)
+        {
+            res.send({success:false,message:"Stop the server first.."});
+            return;
+        }
+        _running_update = true;
+        Logger.log(req.user, req.user.username + " has updated the server..")
+        exec('sh '+config.update_script,{async:true,silent:true},function (code,out,err) {
+            if(code === 0)
+            {
+                res.send({success:true,message:"Server has been updated"});
+            }
+            else
+            {
+                res.send({success:false,message:"The server has not been updated",out:out});
+            }
+            _running_update = false;
+        });
+    });
+});
+
+
+app.post('/get-statistics', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.send({
+            sucess: false,
+            message: "Not logged in"
+        });
+        return;
+    }
+    if (!req.body.key) {
+        res.send({
+            sucess: false,
+            message: "No key provided"
+        });
+        return;
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            res.send({
+                sucess: false,
+                message: err
+            });
+            return;
+        }
+        // TODO LOWERCASE AND REMOVE SPACES
+        connection.query('SELECT * FROM `erro_player` WHERE ckey = ?', [req.body.key], function (err, rows) {
+            connection.release();
+            if (err) {
+                res.send({
+                    sucess: false,
+                    message: err
+                });
+                return;
+            }
+            if (rows.count <= 0) {
+                res.send({
+                    sucess: false,
+                    message: "cancer"
+                });
+                return;
+            }
+            var row = rows[0];
+            if (!row) {
+                res.send({
+                    sucess: false,
+                    message: "cancer"
+                });
+                return;
+            }
+            res.send({
+                sucess: true,
+                firstseen: row.firstseen,
+                lastseen: row.lastseen,
+                ip: row.ip
+            });
+        });
+    });
+});
+
+app.post('/get-location', function (req, res) {
+    var request = require('request');
+    request('http://www.freegeoip.net/json/' + req.body.ip, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            res.send(body);
+        }
+    })
+});
+app.post('/get-bans', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.send({
+            sucess: false,
+            message: "Not logged in"
+        });
+        return;
+    }
+    if (!req.body.key) {
+        res.send({
+            sucess: false,
+            message: "No key provided"
+        });
+        return;
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            res.send({
+                sucess: false,
+                message: err
+            });
+            return;
+        }
+        // TODO LOWERCASE AND REMOVE SPACES
+        connection.query('SELECT * FROM `erro_ban` WHERE ckey = ? ORDER BY bantime DESC', [req.body.key], function (err, rows) {
+            connection.release();
+            if (err) {
+                res.send({
+                    sucess: false,
+                    message: err
+                });
+                return;
+            }
+            if (rows.count <= 0) {
+                res.send({
+                    sucess: false,
+                    message: "cancer"
+                });
+                return;
+            }
+            res.send({
+                sucess: true,
+                rows: rows
+            });
+        });
+    });
+});
+app.post('/get-whitelist', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.send({
+            sucess: false,
+            message: "Not logged in"
+        });
+        return;
+    }
+    if (!req.body.key) {
+        res.send({
+            sucess: false,
+            message: "No key provided"
+        });
+        return;
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            res.send({
+                sucess: false,
+                message: err
+            });
+            return;
+        }
+        // TODO LOWERCASE AND REMOVE SPACES
+        connection.query('SELECT * FROM `whitelist` WHERE ckey = ?', [req.body.key], function (err, rows) {
+            connection.release();
+            if (err) {
+                res.send({
+                    sucess: false,
+                    message: err
+                });
+                return;
+            }
+            if (rows.count <= 0) {
+                res.send({
+                    sucess: false,
+                    message: "cancer"
+                });
+                return;
+            }
+            res.send({
+                sucess: true,
+                rows: rows
+            });
+        });
+    });
+});
+
+
+app.post('/remove-whitelist', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.send({
+            sucess: false,
+            message: "Not logged in"
+        });
+        return;
+    }
+    if (!req.body.key) {
+        res.send({
+            sucess: false,
+            message: "No key provided"
+        });
+        return;
+    }
+    if (!req.body.race) {
+        res.send({
+            sucess: false,
+            message: "No race provided"
+        });
+        return;
+    }
+    Logger.log(req.user, req.user.username + " has removed " + req.body.key + " whitelisting for " + req.body.race)
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            res.send({
+                sucess: false,
+                message: err
+            });
+            return;
+        }
+        req.body.key = req.body.key.toLowerCase();
+        req.body.race = req.body.race.toLowerCase();
+        connection.query('DELETE FROM `whitelist` WHERE ckey = ? AND race = ?', [req.body.key, req.body.race], function (err, rows) {
+            connection.release();
+            if (err) {
+                res.send({
+                    sucess: false,
+                    message: err
+                });
+                return;
+            }
+            res.send({
+                sucess: true
+            });
+        });
+    });
+});
+app.post('/add-whitelist', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.send({
+            sucess: false,
+            message: "Not logged in"
+        });
+        return;
+    }
+    if (!req.body.key) {
+        res.send({
+            sucess: false,
+            message: "No key provided"
+        });
+        return;
+    }
+    if (!req.body.race) {
+        res.send({
+            sucess: false,
+            message: "No race provided"
+        });
+        return;
+    }
+    Logger.log(req.user, req.user.username + " has whitelisted " + req.body.key + " for " + req.body.race)
+    req.body.key = req.body.key.toLowerCase();
+    req.body.race = req.body.race.toLowerCase();
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            res.send({
+                sucess: false,
+                message: err
+            });
+            return;
+        }
+        // TODO LOWERCASE AND REMOVE SPACES
+        connection.query('INSERT INTO `whitelist` (ckey,race) VALUES (?,?)', [req.body.key, req.body.race], function (err, rows) {
+            connection.release();
+            if (err) {
+                res.send({
+                    sucess: false,
+                    message: err
+                });
+                return;
+            }
+            res.send({
+                sucess: true
+            });
+        });
+    });
+});
+
+
+
+
+
+if(config.https_enabled)
+{
+    const https = require('https');
+    const options = {
+      key: fs.readFileSync(config.https_key),
+      cert: fs.readFileSync(config.https_cert)
+    };
+    https.createServer(options, app).listen(config.https_port);
+    console.log('Example app listening at https')
+}
+
+if(config.http_enabled)
+{
+    var server = app.listen(config.http_port, function () {
+
+        var host = server.address().address
+        var port = server.address().port
+
+        console.log('Example app listening at http://%s:%s', host, port)
+
+    })
+}

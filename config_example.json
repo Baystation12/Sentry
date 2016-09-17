@@ -1,0 +1,21 @@
+{
+    "mysql_limit": 50,
+    "mysql_host": "localhost",
+    "mysql_user": "user",
+    "mysql_password": "password",
+    "mysql_db": "db",
+    "git_path": "path to git",
+    "http_enabled": true,
+    "http_port":3000,
+
+
+    "https_enabled": false,
+    "https_port": 3000,
+    "https_key": "",
+    "https_cert": "",
+
+    "pid_file": "",
+    "update_script": "",
+    "start_script":"",
+    "stop_script":""
+}
