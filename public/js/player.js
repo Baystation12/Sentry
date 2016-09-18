@@ -155,6 +155,10 @@ function updateStats() {
             lastseen = moment(data.firstseen).fromNow().split(" ");
             $("#firstseen .value").html(lastseen[0]);
             $("#firstseen .label:eq( 1 ) ").html(lastseen[1] + " " + lastseen[2]);
+
+            $("#bans .value").html(data.ban_count);
+            $("#whitelist .value").html(data.whitelist_count);
+
             $('#statSegment').removeClass("loading");
             $.ajax({
                 url: "/get-location",
