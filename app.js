@@ -152,7 +152,7 @@ app.get('/start-server',function(req,res) {
         Logger.log(req.user, req.user.username + " has started the server..")
         exec('sh '+config.start_script,{async:true,silent:true});
         res.send({success:true,message:"Server has been started."});
-        
+
     });
 });
 app.get('/stop-server',function(req,res) {
@@ -172,7 +172,6 @@ app.get('/stop-server',function(req,res) {
             console.log(code);
             if(code === 0)
             {
-                Logger.
                 res.send({success:true,message:"Server has been stopped"});
             }
             else
@@ -180,7 +179,7 @@ app.get('/stop-server',function(req,res) {
                 res.send({success:false,message:"The server has not been stopped"});
             }
         });
-        
+
     });
 });
 app.get('/current-commit', function (req, res) {
