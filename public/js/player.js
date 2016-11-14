@@ -86,7 +86,7 @@ function addWhitelist() {
         updateWhitelist();
         $("#raceInput").val("");
         }
-        else 
+        else
         {
             $("#errMsg").show();
             $("#errMsg p").html(data.message);
@@ -148,14 +148,14 @@ function updateStats() {
         })
         .done(function (data) {
             var lastseen = moment(data.lastseen).fromNow().split(" ");
-            console.log(lastseen);
             $("#lastseen .value").html(lastseen[0]);
             $("#lastseen .label:eq( 1 )").html(lastseen[1] + " " + lastseen[2]);
 
             lastseen = moment(data.firstseen).fromNow().split(" ");
             $("#firstseen .value").html(lastseen[0]);
             $("#firstseen .label:eq( 1 ) ").html(lastseen[1] + " " + lastseen[2]);
-
+            $("#ip .value").html(data.ip);
+            $("#cid .value").html(data.cid);
             $("#bans .value").html(data.ban_count);
             $("#whitelist .value").html(data.whitelist_count);
 

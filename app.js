@@ -263,7 +263,7 @@ app.post('/get-statistics', function (req, res) {
             return;
         }
         // TODO LOWERCASE AND REMOVE SPACES
-        connection.query('SELECT `firstseen`, `lastseen`, `ip`, (SELECT COUNT(*) FROM `whitelist` WHERE `ckey` = ?) AS `whitelist_count`, (SELECT COUNT(*) FROM `erro_ban` WHERE `ckey` = ? AND `expiration_time` > NOW() AND (unbanned IS NULL)) AS `ban_count` FROM `erro_player` WHERE `ckey` = ?', [req.body.key, req.body.key, req.body.key], function (err, rows) {
+        connection.query('SELECT `firstseen`, `lastseen`, `ip`. `computerid`, (SELECT COUNT(*) FROM `whitelist` WHERE `ckey` = ?) AS `whitelist_count`, (SELECT COUNT(*) FROM `erro_ban` WHERE `ckey` = ? AND `expiration_time` > NOW() AND (unbanned IS NULL)) AS `ban_count` FROM `erro_player` WHERE `ckey` = ?', [req.body.key, req.body.key, req.body.key], function (err, rows) {
             connection.release();
             if (err) {
                 res.send({
@@ -291,6 +291,7 @@ app.post('/get-statistics', function (req, res) {
                 sucess: true,
                 firstseen: row.firstseen,
                 lastseen: row.lastseen,
+                cid: row.computerid;
                 ip: row.ip,
                 whitelist_count: row.whitelist_count,
                 ban_count: row.ban_count,
