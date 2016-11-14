@@ -13,7 +13,7 @@ See [here](https://www.gnu.org/licenses/why-affero-gpl.html) for more informatio
 Head - Original Author
 
 ### Dependencies
-Sentry is designed to operate with XenForo and makes heavy utilization of its API for user authentication.
+Sentry is designed to operate with XenForo and makes heavy utilization of the [xenAPI](https://github.com/Contex/XenAPI) for user authentication.
 Sentry is built to run on Node 6.7 and has not been tested on any previous versions. Sentry also requires npm.
 
 ### Notes
