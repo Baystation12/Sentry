@@ -34,6 +34,7 @@ function updatecommit() {
     var jqxhr = $.ajax("/current-commit")
         .done(function (data) {
             $("#commitH .sub").text(data.message +" from "+moment(data.date).fromNow());
+            $("#commitH .sub").append("<a href='"+repositoryLink+""+data.sha+"'><i class='linkify link icon'></i></a>");
             $("#commitwindow").removeClass("loading");
         })
         .fail(function () {
