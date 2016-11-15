@@ -108,7 +108,7 @@ app.get('/player/:key', function (req, res) {
     } else {
         if (req.params.key)
             res.render("player", {
-                ckey: req.params.key.charAt(0).toUpperCase() + req.params.key.slice(1),
+                ckey: req.params.key,
                 user: req.user
             });
     }
@@ -237,8 +237,32 @@ app.get('/update-server', function (req, res) {
         });
     });
 });
-
-
+app.post('/get-byondaccount', function (req, res) {
+    if (!req.body.ckey) {
+        res.send({
+            sucess: false,
+            message: "No key provided"
+        });
+        return;
+    };
+    var request = require('request');
+    request('http://www.byond.com/members/' + req.body.ckey + "?format=text", function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var data = {};
+            var lines = body.split(/\r?\n/);
+            lines.forEach(function(entry) {
+            		console.log(entry);
+                if(entry.includes("=")) {
+                    var split = entry.split("=");
+                    var key = split[0].trim().replace(/\"/g,"");
+                    var value = split[1].trim().replace(/\"/g,"");
+                    data[key] = value;
+                };
+            });
+            res.send(JSON.stringify(data));
+        };
+    });
+});
 app.post('/get-statistics', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.send({

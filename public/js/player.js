@@ -18,7 +18,7 @@ moment.locale('en', {
 $('#archiveTable')
     .transition('slide down');
 String.prototype.trunc =
-    function (n, useWordBoundary) {
+    function(n, useWordBoundary) {
         var isTooLong = this.length > n,
             s_ = isTooLong ? this.substr(0, n - 1) : this;
         s_ = (useWordBoundary && isTooLong) ? s_.substr(0, s_.lastIndexOf(' ')) : s_;
@@ -27,12 +27,12 @@ String.prototype.trunc =
 $('.dropdown')
     .dropdown({
         action: 'select',
-        onChange: function (value, text, $selectedItem) {
+        onChange: function(value, text, $selectedItem) {
             $("#raceInput").val(text);
         }
     });
 
-$('#archiveHeader').click(function () {
+$('#archiveHeader').click(function() {
     $('#archiveTable')
         .transition('slide down');
     if ($('#archiveHeaderIcon').hasClass('chevron up')) {
@@ -41,27 +41,27 @@ $('#archiveHeader').click(function () {
         $('#archiveHeaderIcon').attr("class", "chevron up icon")
     }
 });
-$('#archiveHeader').mouseover(function () {
+$('#archiveHeader').mouseover(function() {
     $('#archiveHeader').addClass('blue')
 });
-$('#archiveHeader').mouseleave(function () {
+$('#archiveHeader').mouseleave(function() {
     $('#archiveHeader').removeClass('blue')
 });
 
 function getTable(type, admin, comments) {
     switch (type) {
-    case "JOB_PERMABAN":
-        type = "Permanent job ban";
-        break;
-    case "TEMPBAN":
-        type = "Temporary ban";
-        break;
-    case "PERMABAN":
-        type = "Permanent ban";
-        break;
-    case "JOB_TEMPBAN":
-        type = "Temporary job ban";
-        break;
+        case "JOB_PERMABAN":
+            type = "Permanent job ban";
+            break;
+        case "TEMPBAN":
+            type = "Temporary ban";
+            break;
+        case "PERMABAN":
+            type = "Permanent ban";
+            break;
+        case "JOB_TEMPBAN":
+            type = "Temporary job ban";
+            break;
     }
     var str = "<tr><td class = 'single-line'>" + type + "</td>";
     str += "<td>" + admin + "</td><td>" + comments.trunc(200, true) + "</td>";
@@ -80,18 +80,15 @@ function addWhitelist() {
             race: $("#raceInput").val()
         },
         type: "POST"
-    }).done(function (data) {
-        if(data.sucess === true)
-        {
-        updateWhitelist();
-        $("#raceInput").val("");
-        }
-        else
-        {
+    }).done(function(data) {
+        if (data.sucess === true) {
+            updateWhitelist();
+            $("#raceInput").val("");
+        } else {
             $("#errMsg").show();
             $("#errMsg p").html(data.message);
         }
-    }).always(function () {
+    }).always(function() {
         $("#whitelistSegment").removeClass("loading");
     });
 }
@@ -103,14 +100,14 @@ function updateWhitelist() {
             key: window.user
         },
         type: "POST"
-    }).done(function (data) {
+    }).done(function(data) {
         var count = 0;
         $("#whiteTable tbody tr").empty();
-        $.each(data.rows, function (index, value) {
+        $.each(data.rows, function(index, value) {
             var str = "<tr><td>" + value.race + "</td><td class='right aligned'><form class='whitelist_form'><input type='hidden' name='race' value=\"" + value.race + "\"/><button class='negative ui button mini icon'><i class='delete icon'></i></button></form></td></tr>";
             $("#whiteTable tbody").append(str);
         });
-        $(".whitelist_form button").click(function (e) {
+        $(".whitelist_form button").click(function(e) {
             var race = $(this).prev('input').val();
             var button = $(this);
             $(this).addClass("loading");
@@ -121,11 +118,11 @@ function updateWhitelist() {
                     race: race
                 },
                 type: "POST"
-            }).done(function (data) {
+            }).done(function(data) {
                 if (data.success === false) {
                     alert(data.message);
                 }
-            }).always(function () {
+            }).always(function() {
                 updateWhitelist();
             });
 
@@ -146,7 +143,7 @@ function updateStats() {
             crossDomain: true,
             type: "POST"
         })
-        .done(function (data) {
+        .done(function(data) {
             var lastseen = moment(data.lastseen).fromNow().split(" ");
             $("#lastseen .value").html(lastseen[0]);
             $("#lastseen .label:eq( 1 )").html(lastseen[1] + " " + lastseen[2]);
@@ -166,7 +163,7 @@ function updateStats() {
                     ip: data.ip
                 },
                 type: "POST"
-            }).done(function (data) {
+            }).done(function(data) {
                 data = JSON.parse(data);
                 if (data.country_code)
                     $("#country .value").html(data.country_code);
@@ -175,10 +172,10 @@ function updateStats() {
             });
 
         })
-        .fail(function () {
+        .fail(function() {
             $('#statSegment').removeClass("loading");
         })
-        .always(function () {
+        .always(function() {
             $('#statSegment').removeClass("loading");
         });
 
@@ -195,11 +192,11 @@ function updateBans() {
             key: window.user
         },
         type: "POST"
-    }).done(function (data) {
+    }).done(function(data) {
         var bannedCount = 0;
         var unbannedCount = 0;
         window.data_rows = data.rows;
-        $.each(data.rows, function (index, value) {
+        $.each(data.rows, function(index, value) {
             if (value.unbanned == null && value.duration === -1 || value.duration > 0 && moment(value.expiration_time).isAfter(moment())) {
                 bannedCount++;
                 var str = getTable(value.bantype, value.a_ckey, value.reason);
@@ -222,18 +219,13 @@ function updateBans() {
 
 
 
-$(function () { //shorthand document.ready function
+$(function() { //shorthand document.ready function
     $("#errMsg").hide();
-    $("#raceAdd").click(function (e) {
+    $("#raceAdd").click(function(e) {
         addWhitelist();
         e.preventDefault();
     });
-
     updateStats();
     updateBans();
     updateWhitelist();
-
-
-
-
 });
