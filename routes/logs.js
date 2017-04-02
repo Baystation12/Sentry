@@ -21,13 +21,13 @@ module.exports = function (app, pool) {
             connection.query('SELECT * FROM `web_log` ORDER BY `when` DESC LIMIT ?,?', [options.skip, options.limit], function (err, rows) {
                 if (err) {
                     var data = {
-                        sucess: false,
+                        success: false,
                         message: err.message
                     };
                     res.send(data);
                 } else {
                     var data = {
-                        sucess: true,
+                        success: true,
                         rows: rows
                     };
                     res.send(data);
@@ -58,13 +58,13 @@ module.exports = function (app, pool) {
                 console.log(rows);
                 if (err) {
                     var data = {
-                        sucess: false,
+                        success: false,
                         message: err.message
                     };
                     res.send(data);
                 } else {
                     var data = {
-                        sucess: true,
+                        success: true,
                         pages: Math.ceil(rows[0]['COUNT(id)']/options.pageCount) 
                     };
                     res.send(data);
@@ -86,13 +86,13 @@ module.exports = function (app, pool) {
             connection.query('SELECT * FROM `erro_ban` ORDER BY `bantime` DESC LIMIT 10', function (err, rows) {
                 if (err) {
                     var data = {
-                        sucess: false,
+                        success: false,
                         message: err.message
                     };
                     res.send(data);
                 } else {
                     var data = {
-                        sucess: true,
+                        success: true,
                         rows: rows
                     };
                     res.send(data);

@@ -61,7 +61,7 @@ $(function () { //shorthand document.ready function
         url: "/latest-log",
         type: "GET"
     }).done(function (data) {
-        if (data.sucess === true) {
+        if (data.success === true) {
             $.each(data.rows, function (index, value) {
                 var str = '<div class="event"><div class="label"><img id=avatar_' + value.user_id + ' src=""></div><div class="content"><div class="summary">' + capitalize(value.message) + '<div class="date">' + moment(value.when).fromNow() + '</div></div></div></div>';
                 $("#logFeed").append(str);
@@ -75,7 +75,7 @@ $(function () { //shorthand document.ready function
         url: "/latest-bans",
         type: "GET"
     }).done(function (data) {
-        if (data.sucess === true) {
+        if (data.success === true) {
             $.each(data.rows, function (index, value) {
                 var text = '<div class="event"><div class="content">';
                 text = text + '<div class="summary">' + makeLink(value.a_ckey) + ' applied a ' + ban2text(value.bantype) + ' to ' + makeLink(value.ckey) + '<div class="date">' + moment(value.bantime).fromNow() + '</div></div>';
@@ -91,15 +91,15 @@ $(function () { //shorthand document.ready function
     $("#startButton").click(function () {
         $("#messageBox").show();
         $("#messageBoxError").hide();
-        $("#messageBoxSucess").hide();
+        $("#messageBoxsuccess").hide();
         if (window.server) {
             $("#messageBoxText").html("Attempting to stop the server");
             $.get("/stop-server")
                 .done(function (data) {
-                    if(data.sucess)
+                    if(data.success)
                     {
-                        $("#messageBoxSucess").show();
-                        $("#messageBoxSucessText").html(data.message);
+                        $("#messageBoxsuccess").show();
+                        $("#messageBoxsuccessText").html(data.message);
                     }
                     else
                     {
@@ -117,10 +117,10 @@ $(function () { //shorthand document.ready function
             $("#messageBoxText").html("Attempting to start the server");
             $.get("/start-server")
                 .done(function (data) {
-                    if(data.sucess)
+                    if(data.success)
                     {
-                        $("#messageBoxSucess").show();
-                        $("#messageBoxSucessText").html(data.message);
+                        $("#messageBoxsuccess").show();
+                        $("#messageBoxsuccessText").html(data.message);
                     }
                     else
                     {

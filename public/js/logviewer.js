@@ -29,7 +29,7 @@ function run()
         type: "GET"
     }).done(function (data) {
         $("#logFeed").empty();
-        if (data.sucess === true) {
+        if (data.success === true) {
             $.each(data.rows, function (index, value) {
                 var str = '<div class="event"><div class="label"><img id=avatar_' + value.user_id + ' src=""></div><div class="content"><div class="summary">' + capitalize(value.message) + '<div class="date">' + moment(value.when).fromNow() + '</div></div></div></div>';
                 $("#logFeed").append(str);

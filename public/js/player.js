@@ -81,7 +81,7 @@ function addWhitelist() {
         },
         type: "POST"
     }).done(function(data) {
-        if (data.sucess === true) {
+        if (data.success === true) {
             updateWhitelist();
             $("#raceInput").val("");
         } else {
