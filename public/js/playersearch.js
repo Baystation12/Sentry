@@ -8,7 +8,7 @@ function search() {
         },
         type: "POST"
     }).done(function (data) {
-        if (data.sucess === true) {
+        if (data.success === true) {
             $.each(data.rows, function (index, value) {
             var str = '<tr><td><h4 class="ui image header"><img src="https://robohash.org/'+value.ckey+'?size50x50?" class="ui mini rounded image">'
             str += '<div class="content"><a href="/player/'+value.ckey+'">'+value.ckey+'</a>'
@@ -32,7 +32,7 @@ $(function () { //shorthand document.ready function
         },
         type: "POST"
     }).done(function (data) {
-        if (data.sucess === true) {
+        if (data.success === true) {
             $.each(data.rows, function (index, value) {
             var str = '<tr><td><h4 class="ui image header"><img src="https://robohash.org/'+value.ckey+'?size50x50" class="ui mini rounded image">'
             str += '<div class="content"><a href="/player/'+value.ckey+'">'+value.ckey+'</a>'

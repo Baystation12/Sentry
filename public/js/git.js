@@ -1,17 +1,17 @@
 $("#messageBox").hide();
 $("#messageBoxError").hide();
-$("#messageBoxSucess").hide();
+$("#messageBoxsuccess").hide();
 $("#updateButton").click(function () {
     $("#messageBox").show();
     $("#messageBoxError").hide();
-    $("#messageBoxSucess").hide();
+    $("#messageBoxsuccess").hide();
     $("#messageBoxText").html("Attempting to update the server");
     var jqxhr = $.ajax("/update-server")
         .done(function (data) {
-            if(data.sucess)
+            if(data.success)
             {
-                $("#messageBoxSucess").show();
-                $("#messageBoxSucessText").html(data.message);
+                $("#messageBoxsuccess").show();
+                $("#messageBoxsuccessText").html(data.message);
             }
             else
             {

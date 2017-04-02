@@ -146,12 +146,12 @@ app.get('/start-server',function(req,res) {
     isRunning().done(function(data) {
         if(data.server)
         {
-            res.send({success:false,message:"Server is already running.."});
+            res.send({success:false, message:"Server is already running.."});
             return;
         }
         Logger.log(req.user, req.user.username + " has started the server..")
         exec('sh '+config.start_script,{async:true,silent:true});
-        res.send({success:true,message:"Server has been started."});
+        res.send({success:true, message:"Server has been started."});
 
     });
 });
@@ -240,7 +240,7 @@ app.get('/update-server', function (req, res) {
 app.post('/get-byondaccount', function (req, res) {
     if (!req.body.ckey) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No key provided"
         });
         return;
@@ -266,14 +266,14 @@ app.post('/get-byondaccount', function (req, res) {
 app.post('/get-statistics', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.send({
-            sucess: false,
+            success: false,
             message: "Not logged in"
         });
         return;
     }
     if (!req.body.key) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No key provided"
         });
         return;
@@ -281,7 +281,7 @@ app.post('/get-statistics', function (req, res) {
     pool.getConnection(function (err, connection) {
         if (err) {
             res.send({
-                sucess: false,
+                success: false,
                 message: err
             });
             return;
@@ -291,14 +291,14 @@ app.post('/get-statistics', function (req, res) {
             connection.release();
             if (err) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: err
                 });
                 return;
             }
             if (rows.count <= 0) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: "cancer"
                 });
                 return;
@@ -306,13 +306,13 @@ app.post('/get-statistics', function (req, res) {
             var row = rows[0];
             if (!row) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: "cancer"
                 });
                 return;
             }
             res.send({
-                sucess: true,
+                success: true,
                 firstseen: row.firstseen,
                 lastseen: row.lastseen,
                 cid: row.computerid,
@@ -335,14 +335,14 @@ app.post('/get-location', function (req, res) {
 app.post('/get-bans', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.send({
-            sucess: false,
+            success: false,
             message: "Not logged in"
         });
         return;
     }
     if (!req.body.key) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No key provided"
         });
         return;
@@ -350,7 +350,7 @@ app.post('/get-bans', function (req, res) {
     pool.getConnection(function (err, connection) {
         if (err) {
             res.send({
-                sucess: false,
+                success: false,
                 message: err
             });
             return;
@@ -360,20 +360,20 @@ app.post('/get-bans', function (req, res) {
             connection.release();
             if (err) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: err
                 });
                 return;
             }
             if (rows.count <= 0) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: "cancer"
                 });
                 return;
             }
             res.send({
-                sucess: true,
+                success: true,
                 rows: rows
             });
         });
@@ -382,14 +382,14 @@ app.post('/get-bans', function (req, res) {
 app.post('/get-whitelist', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.send({
-            sucess: false,
+            success: false,
             message: "Not logged in"
         });
         return;
     }
     if (!req.body.key) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No key provided"
         });
         return;
@@ -397,7 +397,7 @@ app.post('/get-whitelist', function (req, res) {
     pool.getConnection(function (err, connection) {
         if (err) {
             res.send({
-                sucess: false,
+                success: false,
                 message: err
             });
             return;
@@ -407,20 +407,20 @@ app.post('/get-whitelist', function (req, res) {
             connection.release();
             if (err) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: err
                 });
                 return;
             }
             if (rows.count <= 0) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: "cancer"
                 });
                 return;
             }
             res.send({
-                sucess: true,
+                success: true,
                 rows: rows
             });
         });
@@ -431,21 +431,21 @@ app.post('/get-whitelist', function (req, res) {
 app.post('/remove-whitelist', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.send({
-            sucess: false,
+            success: false,
             message: "Not logged in"
         });
         return;
     }
     if (!req.body.key) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No key provided"
         });
         return;
     }
     if (!req.body.race) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No race provided"
         });
         return;
@@ -454,7 +454,7 @@ app.post('/remove-whitelist', function (req, res) {
     pool.getConnection(function (err, connection) {
         if (err) {
             res.send({
-                sucess: false,
+                success: false,
                 message: err
             });
             return;
@@ -465,13 +465,13 @@ app.post('/remove-whitelist', function (req, res) {
             connection.release();
             if (err) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: err
                 });
                 return;
             }
             res.send({
-                sucess: true
+                success: true
             });
         });
     });
@@ -479,21 +479,21 @@ app.post('/remove-whitelist', function (req, res) {
 app.post('/add-whitelist', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.send({
-            sucess: false,
+            success: false,
             message: "Not logged in"
         });
         return;
     }
     if (!req.body.key) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No key provided"
         });
         return;
     }
     if (!req.body.race) {
         res.send({
-            sucess: false,
+            success: false,
             message: "No race provided"
         });
         return;
@@ -504,7 +504,7 @@ app.post('/add-whitelist', function (req, res) {
     pool.getConnection(function (err, connection) {
         if (err) {
             res.send({
-                sucess: false,
+                success: false,
                 message: err
             });
             return;
@@ -514,13 +514,13 @@ app.post('/add-whitelist', function (req, res) {
             connection.release();
             if (err) {
                 res.send({
-                    sucess: false,
+                    success: false,
                     message: err
                 });
                 return;
             }
             res.send({
-                sucess: true
+                success: true
             });
         });
     });

@@ -44,13 +44,13 @@ module.exports = function (app, passport, User,pool) {
                 connection.query('SELECT * FROM `erro_player` ORDER BY `lastseen` DESC LIMIT 30', function (err, rows) {
                     if (err) {
                         var data = {
-                            sucess: false,
+                            success: false,
                             message: err.message
                         };
                         res.send(data);
                     } else {
                         var data = {
-                            sucess: true,
+                            success: true,
                             rows: rows
                         };
                         res.send(data);
@@ -63,13 +63,13 @@ module.exports = function (app, passport, User,pool) {
                 connection.query("SELECT * FROM `erro_player` WHERE `ckey` LIKE ? ORDER BY `lastseen` DESC LIMIT 30", [req.body.search + "%"], function (err, rows) {
                     if (err) {
                         var data = {
-                            sucess: false,
+                            success: false,
                             message: err.message
                         };
                         res.send(data);
                     } else {
                         var data = {
-                            sucess: true,
+                            success: true,
                             rows: rows
                         };
                         res.send(data);
