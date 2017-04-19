@@ -28,7 +28,7 @@ $('.dropdown')
     .dropdown({
         action: 'select',
         onChange: function(value, text, $selectedItem) {
-            $("#raceInput").val(text);
+            $("#raceInput").val(value);
         }
     });
 
@@ -104,7 +104,11 @@ function updateWhitelist() {
         var count = 0;
         $("#whiteTable tbody tr").empty();
         $.each(data.rows, function(index, value) {
-            var str = "<tr><td>" + value.race + "</td><td class='right aligned'><form class='whitelist_form'><input type='hidden' name='race' value=\"" + value.race + "\"/><button class='negative ui button mini icon'><i class='delete icon'></i></button></form></td></tr>";
+						var name = value.race
+						if(value.race.startsWith("branch:")) {
+							name = value.race.slice(7)
+						}
+            var str = "<tr><td>" + name + "</td><td class='right aligned'><form class='whitelist_form'><input type='hidden' name='race' value=\"" + value.race + "\"/><button class='negative ui button mini icon'><i class='delete icon'></i></button></form></td></tr>";
             $("#whiteTable tbody").append(str);
         });
         $(".whitelist_form button").click(function(e) {

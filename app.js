@@ -251,7 +251,7 @@ app.post('/get-byondaccount', function (req, res) {
             var data = {};
             var lines = body.split(/\r?\n/);
             lines.forEach(function(entry) {
-            		console.log(entry);
+                console.log(entry);
                 if(entry.includes("=")) {
                     var split = entry.split("=");
                     var key = split[0].trim().replace(/\"/g,"");
@@ -404,8 +404,8 @@ app.post('/get-whitelist', function (req, res) {
         }
         // TODO LOWERCASE AND REMOVE SPACES
         connection.query('SELECT * FROM `whitelist` WHERE ckey = ?', [req.body.key], function (err, rows) {
-            connection.release();
             if (err) {
+                connection.release();
                 res.send({
                     success: false,
                     message: err
@@ -413,15 +413,38 @@ app.post('/get-whitelist', function (req, res) {
                 return;
             }
             if (rows.count <= 0) {
+                connection.release();
                 res.send({
                     success: false,
                     message: "cancer"
                 });
                 return;
             }
-            res.send({
-                success: true,
-                rows: rows
+            connection.query('SELECT * FROM `branch_whitelist` WHERE ckey = ?', [req.body.key], function (err, branch_rows) {
+                connection.release();
+                if (err) {
+                    connection.release();
+                    res.send({
+                        success: false,
+                        message: err
+                    });
+                    return;
+                }
+                if (rows.count <= 0) {
+                    connection.release();
+                    res.send({
+                        success: false,
+                        message: "cancer"
+                    });
+                    return;
+                }
+                for(var i = 0; i < branch_rows.length; ++i) {
+                  rows.push({"race": "branch:" + branch_rows[i].branch})
+                }
+                res.send({
+                    success: true,
+                    rows: rows
+                });
             });
         });
     });
@@ -461,19 +484,36 @@ app.post('/remove-whitelist', function (req, res) {
         }
         req.body.key = req.body.key.toLowerCase();
         req.body.race = req.body.race.toLowerCase();
-        connection.query('DELETE FROM `whitelist` WHERE ckey = ? AND race = ?', [req.body.key, req.body.race], function (err, rows) {
-            connection.release();
-            if (err) {
+        if (req.body.race.startsWith("branch:")) {
+            req.body.race = req.body.race.slice(7);
+            connection.query('DELETE FROM `branch_whitelist` WHERE ckey = ? AND branch = ?', [req.body.key, req.body.race], function (err, rows) {
+                connection.release();
+                if (err) {
+                    res.send({
+                        success: false,
+                        message: err
+                    });
+                    return;
+                }
                 res.send({
-                    success: false,
-                    message: err
+                    success: true
                 });
-                return;
-            }
-            res.send({
-                success: true
             });
-        });
+        } else {
+            connection.query('DELETE FROM `whitelist` WHERE ckey = ? AND race = ?', [req.body.key, req.body.race], function (err, rows) {
+                connection.release();
+                if (err) {
+                    res.send({
+                        success: false,
+                        message: err
+                    });
+                    return;
+                }
+                res.send({
+                    success: true
+                });
+            });
+        }
     });
 });
 app.post('/add-whitelist', function (req, res) {
@@ -501,17 +541,9 @@ app.post('/add-whitelist', function (req, res) {
     Logger.log(req.user, req.user.username + " has whitelisted " + req.body.key + " for " + req.body.race)
     req.body.key = req.body.key.toLowerCase();
     req.body.race = req.body.race.toLowerCase();
-    pool.getConnection(function (err, connection) {
-        if (err) {
-            res.send({
-                success: false,
-                message: err
-            });
-            return;
-        }
-        // TODO LOWERCASE AND REMOVE SPACES
-        connection.query('INSERT INTO `whitelist` (ckey,race) VALUES (?,?)', [req.body.key, req.body.race], function (err, rows) {
-            connection.release();
+    if (req.body.race.startsWith("branch:")) {
+        req.body.race = req.body.race.slice(7);
+        pool.getConnection(function (err, connection) {
             if (err) {
                 res.send({
                     success: false,
@@ -519,11 +551,46 @@ app.post('/add-whitelist', function (req, res) {
                 });
                 return;
             }
-            res.send({
-                success: true
+            // TODO LOWERCASE AND REMOVE SPACES
+            connection.query('INSERT INTO `branch_whitelist` (ckey,branch) VALUES (?,?)', [req.body.key, req.body.race], function (err, rows) {
+                connection.release();
+                if (err) {
+                    res.send({
+                        success: false,
+                        message: err
+                    });
+                    return;
+                }
+                res.send({
+                    success: true
+                });
             });
         });
-    });
+    } else {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                res.send({
+                    success: false,
+                    message: err
+                });
+                return;
+            }
+            // TODO LOWERCASE AND REMOVE SPACES
+            connection.query('INSERT INTO `whitelist` (ckey,race) VALUES (?,?)', [req.body.key, req.body.race], function (err, rows) {
+                connection.release();
+                if (err) {
+                    res.send({
+                        success: false,
+                        message: err
+                    });
+                    return;
+                }
+                res.send({
+                    success: true
+                });
+            });
+        });
+    }
 });
 
 
