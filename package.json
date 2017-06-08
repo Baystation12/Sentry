@@ -26,6 +26,7 @@
     "safe-buffer": "^5.1.0",
     "session-file-store": "0.0.24",
     "shelljs": "^0.5.3",
+    "sshpk": "^1.13.1",
     "superagent": "^1.8.5",
     "superagent-promise": "^1.1.0"
   },
