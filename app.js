@@ -36,7 +36,7 @@ app.use(bodyParser.json())
 app.use(cookieParser());
 
 app.use(session({
-    secret: 'ilovescotchscotchyscotchscotch',
+    secret: config.session_secret,
     saveUninitialized: false,
     resave: false
 })); // session secret

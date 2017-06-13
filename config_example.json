@@ -17,5 +17,7 @@
     "pid_file": "",
     "update_script": "",
     "start_script":"",
-    "stop_script":""
+    "stop_script":"",
+
+    "session_secret": "I will put something secret and secure here"
 }
