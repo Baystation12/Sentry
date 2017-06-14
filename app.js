@@ -55,6 +55,7 @@ var Logger = new(require("./modules/logger.js"))(pool);
 require("./routes/user.js")(app, passport, User, pool);
 require("./routes/logs.js")(app, pool);
 
+require("./routes/serverlog.js")(app, config.log_path);
 
 
 
@@ -70,6 +71,14 @@ app.get("/view-logs",function(req,res) {
         return;
     };
     res.render("viewlog",{user:req.user});
+});
+
+app.get("/view-serverlogs",function(req,res) {
+    if(!req.user) {
+        res.redirect("/")
+        return;
+    };
+    res.render("viewserverlog",{user:req.user});
 });
 
 
