@@ -260,7 +260,7 @@ app.post('/get-byondaccount', function (req, res) {
             var data = {};
             var lines = body.split(/\r?\n/);
             lines.forEach(function(entry) {
-            		console.log(entry);
+                console.log(entry);
                 if(entry.includes("=")) {
                     var split = entry.split("=");
                     var key = split[0].trim().replace(/\"/g,"");
