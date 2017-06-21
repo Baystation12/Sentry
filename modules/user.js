@@ -12,6 +12,10 @@ function User(pool, passport, bcrypt) {
                 if (res.success) {
                     me.GetUserInfo(username, userhash).done(function (dat) {
                         if (dat.success && me.IsStaff(dat.user.user_group_id)) {
+                            dat.user.is_admin = false;
+                            if(me.IsAdmin(dat.user.user_group_id)) {
+                              dat.user.is_admin = true;
+                            }
                             dat.user.userhash = userhash;
                             done(null, dat.user);
                         } else
