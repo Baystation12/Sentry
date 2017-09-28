@@ -2,3 +2,4 @@
 config.json
 /tmp
 /public/status.dat
+.idea

@@ -12,7 +12,6 @@ module.exports = function (app, pool) {
             options.skip = Number(req.query.skip);
         if (req.query.limit)
             options.limit = Number(req.query.limit);
-        console.log(req.query);
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);

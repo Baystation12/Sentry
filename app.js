@@ -46,6 +46,7 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use(express.static(__dirname + '/public'));
 app.use("/player", express.static(__dirname + '/public'));
+app.use("/book", express.static(__dirname + '/public'));
 app.set('view engine', 'handlebars');
 
 require('./handlebars.js')(exphbs, app);
@@ -54,7 +55,7 @@ var Logger = new(require("./modules/logger.js"))(pool);
 
 require("./routes/user.js")(app, passport, User, pool);
 require("./routes/logs.js")(app, pool);
-
+require("./routes/books.js")(app, pool,Logger);
 require("./routes/serverlog.js")(app, config.log_path);
 
 
@@ -96,7 +97,31 @@ app.get('/', function (req, res) {
     }
 });
 
-
+app.get('/book', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.redirect("/");
+        return;
+    }
+    res.render("booksearch", {
+        user: req.user
+    });
+});
+app.options('/book/:key');
+app.get('/book/:key', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.redirect("/");
+        return;
+    }
+    if (!req.params.key) {
+        res.redirect("/book");
+    } else {
+        if (req.params.key)
+            res.render("book", {
+                id: req.params.key,
+                user: req.user
+            });
+    }
+});
 app.get('/player', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.redirect("/");
