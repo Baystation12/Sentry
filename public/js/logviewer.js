@@ -42,14 +42,35 @@ function run()
 
     $.get("/logs-pages").done(function (data) {
         $("#pag").empty();
-        for (i = 0; i < data.pages; i++) {
+        var count = 5;
+        var start = Math.max(window.page-count,0);
+        count += start - (window.page-count);
+        var end = Math.min(window.page+count,data.pages);
+
+        for (i = start; i < end; i++) {
             if(i == window.page)
                 $("#pag").append('<a class="item active log">'+(i+1)+'</a>');
             else
                 $("#pag").append('<a class="item log">'+(i+1)+'</a>');
         }
+        if(end < data.pages)
+            $("#pag").append('<a class="item button">...</a>');
         $("a.item.log").click(function(eh) {
             window.page = Number($(this).text())-1;
+            run();
+        });
+        window.maxPages = data.pages;
+        $("a.item.button").click(function(eh) {
+            var number = Number(prompt("Please enter a number between 1 and "+window.maxPages+1, 0));
+            if(isNaN(number)) {
+                alert("Must be a number!");
+                return;
+            }
+            if(number < 1 || number > window.maxPages+1) {
+                alert("Out of bounds..");
+                return;
+            }
+            window.page = number-1;
             run();
         });
     });
