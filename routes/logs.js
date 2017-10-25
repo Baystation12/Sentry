@@ -6,7 +6,7 @@ module.exports = function (app, pool) {
         }
         var options = {
             skip: 0,
-            limit: 10
+            limit: 20
         };
         if (req.query.skip)
             options.skip = Number(req.query.skip);
