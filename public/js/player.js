@@ -47,27 +47,60 @@ $('#archiveHeader').mouseover(function() {
 $('#archiveHeader').mouseleave(function() {
     $('#archiveHeader').removeClass('blue')
 });
+// taken from https://stackoverflow.com/a/9609450
+var decodeEntities = (function() {
+  // this prevents any overhead from creating the object each time
+  var element = document.createElement('div');
 
-function formatBanRow(type, admin, comments) {
+  function decodeHTMLEntities (str) {
+    if(str && typeof str === 'string') {
+      // strip script/html tags
+      str = str.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+      str = str.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+      element.innerHTML = str;
+      str = element.textContent;
+      element.textContent = '';
+    }
+
+    return str;
+  }
+
+  return decodeHTMLEntities;
+})();
+function formatBanRow(type, admin, comments,data) {
+    var extra = "";
     switch (type) {
         case "JOB_PERMABAN":
-            type = "Permanent job ban";
+            type = "JOBBAN";
+            extra = data.job;
             break;
         case "TEMPBAN":
-            type = "Temporary ban";
+            type = "BAN";
             break;
         case "PERMABAN":
-            type = "Permanent ban";
+            type = "BAN";
             break;
         case "JOB_TEMPBAN":
-            type = "Temporary job ban";
+            type = "JOBBAN";
+            extra = data.job;
             break;
     }
-    var str = "<tr><td class = 'single-line'>" + type + "</td>";
-    str += "<td>" + admin + "</td><td>" + comments.trunc(200, true) + "</td>";
+    comments = decodeEntities(comments.replace(/#/g,"&#"));
+    var duration = "PERMANENT";
+    if(data.duration > 0) {
+        duration = moment.duration(data.duration,'minutes').humanize();
+    }
+    var id = window.commentId++;
+    window.comments[id.toString()] = comments;
+    var str = `<tr><td class='single-line'>${type}</td><td>${duration}</td><td>${admin}</td><td class="clickable" onClick='showBanComment("${id}")'>${comments.trunc(200,true)}</td><td>${extra}</td></tr>`
     return str;
 }
-
+window.commentId = 0;
+window.comments = {};
+function showBanComment(commentId) {
+    $("#modal div.content p").html(window.comments[commentId]);
+    $('#modal').modal('show');
+}
 
 
 function addWhitelist() {
@@ -199,10 +232,10 @@ function updateBans() {
         $.each(data.rows, function(index, value) {
             if (value.unbanned == null && value.duration === -1 || value.duration > 0 && moment(value.expiration_time).isAfter(moment())) {
                 bannedCount++;
-                var str = formatBanRow(value.bantype, value.a_ckey, value.reason);
+                var str = formatBanRow(value.bantype, value.a_ckey, value.reason,value);
                 $("#banTable tbody").append(str);
             } else {
-                var str = formatBanRow(value.bantype, value.a_ckey, value.reason);
+                var str = formatBanRow(value.bantype, value.a_ckey, value.reason,value);
                 $("#archiveTableR tbody").append(str);
                 unbannedCount++;
             }
