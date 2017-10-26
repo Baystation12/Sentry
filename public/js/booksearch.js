@@ -32,7 +32,7 @@ $(function () { //shorthand document.ready function
     }).done(function (data) {
         if (data.success === true) {
             $.each(data.rows, function (index, value) {
-                var str = '<tr><td><h4 class="ui image header"><img src="https://robohash.org/'+value.title+'?size50x50" class="ui mini rounded image">'
+                var str = '<tr><td><h4 class="ui header"><i class="book icon"></i></h4>'
                 str += '<div class="content"><a href="/book/'+value.id+'">'+value.title+'</a>'
                 str += '<div class="sub header">'+value.author+'</div></div></td></tr>'
                 $(".table tbody").append(str);
