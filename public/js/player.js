@@ -92,7 +92,7 @@ function formatBanRow(type, admin, comments,data) {
     }
     var id = window.commentId++;
     window.comments[id.toString()] = comments;
-    var str = `<tr><td class='single-line'>${type}</td><td>${duration}</td><td>${admin}</td><td class="clickable" onClick='showBanComment("${id}")'>${comments.trunc(200,true)}</td><td>${moment(data.bantime).calendar();}</td><td>${extra}</td></tr>`
+    var str = `<tr><td class='single-line'>${type}</td><td>${duration}</td><td>${admin}</td><td class="clickable" onClick='showBanComment("${id}")'>${comments.trunc(200,true)}</td><td>${moment(data.bantime).calendar()}</td><td>${extra}</td></tr>`
     return str;
 }
 window.commentId = 0;
