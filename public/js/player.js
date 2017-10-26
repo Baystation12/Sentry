@@ -48,7 +48,7 @@ $('#archiveHeader').mouseleave(function() {
     $('#archiveHeader').removeClass('blue')
 });
 
-function getTable(type, admin, comments) {
+function formatBanRow(type, admin, comments) {
     switch (type) {
         case "JOB_PERMABAN":
             type = "Permanent job ban";
@@ -199,10 +199,10 @@ function updateBans() {
         $.each(data.rows, function(index, value) {
             if (value.unbanned == null && value.duration === -1 || value.duration > 0 && moment(value.expiration_time).isAfter(moment())) {
                 bannedCount++;
-                var str = getTable(value.bantype, value.a_ckey, value.reason);
+                var str = formatBanRow(value.bantype, value.a_ckey, value.reason);
                 $("#banTable tbody").append(str);
             } else {
-                var str = getTable(value.bantype, value.a_ckey, value.reason);
+                var str = formatBanRow(value.bantype, value.a_ckey, value.reason);
                 $("#archiveTableR tbody").append(str);
                 unbannedCount++;
             }
