@@ -67,6 +67,9 @@
             margin: 5em 0em 0em;
             padding: 5em 0em;
         }
+        td.clickable {
+            cursor:pointer;
+        };
     </style>
 
 </head>
@@ -178,8 +181,11 @@
                             <thead>
                                 <tr>
                                     <th>Type</th>
+                                    <th>Duration</th>
                                     <th>Admin</th>
                                     <th>Comments</th>
+                                    <th>Applied</th>
+                                    <th>Extra</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -194,8 +200,11 @@
                                 <thead>
                                     <tr>
                                         <th>Type</th>
+                                        <th>Duration</th>
                                         <th>Admin</th>
                                         <th>Comments</th>
+                                        <th>Applied</th>
+                                        <th>Extra</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -268,6 +277,21 @@
             </div>
         </div>
     </div>
+    </div>
+    <div class="ui modal" id="modal">
+        <i class="close icon"></i>
+        <div class="header">
+            Ban comment
+        </div>
+        <div class="content">
+                <p></p>
+        </div>
+        <div class="actions">
+            <div class="ui positive right labeled icon button">
+              Close
+              <i class="close icon"></i>
+            </div>
+        </div>
     </div>
 </body>
 <script src="js/moment.js"></script>
