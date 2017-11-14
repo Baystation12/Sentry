@@ -17,7 +17,7 @@ module.exports = function (app, pool,Logger) {
                 console.log(err);
                 res.send(500);
             }
-            connection.query('SELECT * FROM `library` ORDER BY `title` DESC LIMIT ?,?', [options.skip, options.limit], function (err, rows) {
+            connection.query('SELECT * FROM `library` ORDER BY `id` DESC LIMIT ?,?', [options.skip, options.limit], function (err, rows) {
                 if (err) {
                     var data = {
                         success: false,

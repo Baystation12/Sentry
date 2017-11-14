@@ -19,6 +19,7 @@ function search() {
             $(".segment").removeClass("loading");
     });
 }
+
 function addBook(value) {
     var str = '<tr><td><h4 class="ui header"><i class="book icon"></i>'
     str += '<div class="content"><a href="/book/'+value.id+'">'+value.title+'</a>'
@@ -26,10 +27,14 @@ function addBook(value) {
     $(".table tbody").append(str);
 }
 
-$(function () { //shorthand document.ready function
-    $.ajax({
+function refresh(page,limit) {
+	$(".table tbody").innerHTML = "";
+	$.ajax({
         url: "/get-books",
-        data: {},
+        data: {
+			skip: ((page-1) * limit),
+			limit: limit
+		},
         type: "GET"
     }).done(function (data) {
         if (data.success === true) {
@@ -40,6 +45,14 @@ $(function () { //shorthand document.ready function
             alert(data.message);
         }
     })
+}
+
+$(function () { //shorthand document.ready function
+	var page_num = 1;
+	var page_limit = 25;
+
+	refresh(page_num, page_limit);
+
     $("#searchButton").click(function (e) {
             e.preventDefault();
             search();
@@ -49,5 +62,15 @@ $(function () { //shorthand document.ready function
         $("#searchButton").click();
         return false;
     }
-});
+
+	$("#nextpButton").click(function() {
+		page_num += 1;
+        refresh(page_num, page_limit);
+    });
+
+	$("#prevpButton").click(function() {
+		page_num -= 1;
+		if(page_num<1) {page_num=1;};
+        refresh(page_num, page_limit);
+    });
 });
