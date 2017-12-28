@@ -31,7 +31,7 @@ function run()
         $("#logFeed").empty();
         if (data.success === true) {
             $.each(data.rows, function (index, value) {
-                var str = '<div class="event"><div class="label"><img id=avatar_' + value.user_id + ' src=""></div><div class="content"><div class="summary">' + capitalize(value.message) + '<div class="date">' + moment(value.when).fromNow() + '</div></div></div></div>';
+                var str = '<div class="event"><div class="label"><img id=avatar_' + value.user_id + ' src=""></div><div class="content"><div class="summary">' + capitalize(value.message) + '</div><div class="extra text"></div><div class="date">'+moment(value.when).format("dddd, MMMM Do YYYY, HH:mm:ss")+'</div></div></div>';
                 $("#logFeed").append(str);
                 LoadAvatar(value.user_id, "avatar_" + value.user_id);
             });
