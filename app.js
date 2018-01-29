@@ -56,6 +56,7 @@ var Logger = new(require("./modules/logger.js"))(pool);
 require("./routes/user.js")(app, passport, User, pool);
 require("./routes/logs.js")(app, pool);
 require("./routes/books.js")(app, pool,Logger);
+require("./routes/news.js")(app, pool,Logger);
 require("./routes/serverlog.js")(app, config.log_path);
 
 
@@ -122,6 +123,34 @@ app.get('/book/:key', function (req, res) {
             });
     }
 });
+
+app.get('/news', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.redirect("/");
+        return;
+    }
+    res.render("newssearch", {
+        user: req.user
+    });
+});
+app.options('/news/:key');
+app.get('/news/:key', function (req, res) {
+    if (!req.user || req.user.rank < 1) {
+        res.redirect("/");
+        return;
+    }
+    if (!req.params.key) {
+        res.redirect("/news");
+    } else {
+        if (req.params.key)
+            res.render("news", {
+                id: req.params.key,
+                user: req.user
+            });
+    }
+});
+
+
 app.get('/player', function (req, res) {
     if (!req.user || req.user.rank < 1) {
         res.redirect("/");
