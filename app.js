@@ -15,7 +15,7 @@ const url = require('url');
 require('shelljs/global');
 
 var fs = require('fs');
-var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+var config = JSON.parse(fs.readFileSync('config/config.json', 'utf8'));
 
 
 var pool = mysql.createPool({
