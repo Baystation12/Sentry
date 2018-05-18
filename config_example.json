@@ -4,7 +4,6 @@
     "mysql_user": "user",
     "mysql_password": "password",
     "mysql_db": "db",
-    "git_path": "path to git",
     "http_enabled": true,
     "http_port":3000,
 
@@ -14,10 +13,8 @@
     "https_key": "",
     "https_cert": "",
 
-    "pid_file": "",
-    "update_script": "",
-    "start_script":"",
-    "stop_script":"",
+    "monitor_url": "",
+    "monitor_key": "",
     "log_path":"/path/to/server/logs",
 
     "session_secret": "I will put something secret and secure here"

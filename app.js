@@ -9,6 +9,8 @@ var session = require('express-session');
 var bcrypt = require('bcryptjs');
 var app = express();
 var promise = require('promise');
+var rp = require('request-promise-native');
+const url = require('url');
 //var FileStore = require('session-file-store')(session);
 require('shelljs/global');
 
@@ -148,27 +150,28 @@ app.get('/player/:key', function (req, res) {
     }
 });
 
+function monitorRequest(method, endpoint) {
+    return rp({
+        uri: config.monitor_url + "/" + endpoint,
+        json: true,
+        method: method,
+        auth: {
+            user: "auth",
+            pass: config.monitor_key
+        }
+    });
+}
+
 var isRunning = function () {
-    return new promise(function (fulfill, reject) {
-        var running = require('is-running')
-        fs.stat(config.pid_file,
-            function (err, stats) {
-                if (err) {
-                    return fulfill({
-                        server: false
-                    });
-                }
-                fs.readFile(config.pid_file, function (err, data) {
-                    return fulfill({
-                        server: running(data)
-                    });
-                });
-            });
+    return monitorRequest("GET", "is_running").then((res) => {
+        return {server: res.message}
+    }).catch((_) => {
+        return {server: false}
     });
 };
 
 app.get('/is-server-alive', function (req, res) {
-    isRunning().done(function(data) {
+    isRunning().then((data) => {
         res.send(data);
     });
 });
@@ -177,16 +180,16 @@ app.get('/start-server',function(req,res) {
         res.sendStatus(403);
         return;
     }
-    isRunning().done(function(data) {
+    isRunning().then(function(data) {
         if(data.server)
         {
             res.send({success:false, message:"Server is already running.."});
             return;
         }
         Logger.log(req.user, req.user.username + " has started the server..")
-        exec('sh '+config.start_script,{async:true,silent:true});
-        res.send({success:true, message:"Server has been started."});
-
+        return monitorRequest("POST", "start").then((monRes) => {
+            res.send(monRes);
+        });
     });
 });
 app.get('/stop-server',function(req,res) {
@@ -194,26 +197,16 @@ app.get('/stop-server',function(req,res) {
         res.sendStatus(403);
         return;
     }
-    isRunning().done(function(data) {
+    isRunning().then(function(data) {
         if(!data.server)
         {
-            res.send({success:false,message:"Server is already stopped..."});
+            res.send({success:false, message:"Server is already stopped.."});
             return;
         }
         Logger.log(req.user, req.user.username + " has stopped the server..")
-        exec('sh '+config.stop_script,{async:true,silent:true},function (code,out,err) {
-            console.log(out);
-            console.log(code);
-            if(code === 0)
-            {
-                res.send({success:true,message:"Server has been stopped"});
-            }
-            else
-            {
-                res.send({success:false,message:"The server has not been stopped"});
-            }
+        return monitorRequest("POST", "stop").then((monRes) => {
+            res.send(monRes);
         });
-
     });
 });
 app.get('/current-commit', function (req, res) {
@@ -221,24 +214,10 @@ app.get('/current-commit', function (req, res) {
         res.sendStatus(403);
         return;
     }
-    var Git = require("nodegit");
 
-    var getMostRecentCommit = function (repository) {
-        return repository.getHeadCommit();
-    };
-
-    var getCommitMessage = function (commit) {
-        return {message:commit.summary(),date:commit.date(),sha:commit.sha()};
-    };
-
-    Git.Repository.open(config.git_path)
-        .then(getMostRecentCommit)
-        .then(getCommitMessage)
-        .then(function (message) {
-            res.send(message);
-        });
-
-
+    monitorRequest("GET", "commit").then((monRes) => {
+        res.send(monRes.message);
+    });
 });
 app.get('/update-server', function (req, res) {
     if (!req.user) {
@@ -250,7 +229,7 @@ app.get('/update-server', function (req, res) {
         res.send({success:false,message:"Server is already being updated"});
         return;
     }
-    isRunning().done(function(data) {
+    isRunning().then(function(data) {
         if(data.server)
         {
             res.send({success:false,message:"Stop the server first.."});
@@ -258,15 +237,8 @@ app.get('/update-server', function (req, res) {
         }
         _running_update = true;
         Logger.log(req.user, req.user.username + " has updated the server..")
-        exec('sh '+config.update_script,{async:true,silent:true},function (code,out,err) {
-            if(code === 0)
-            {
-                res.send({success:true,message:"Server has been updated"});
-            }
-            else
-            {
-                res.send({success:false,message:"The server has not been updated",out:out});
-            }
+        return monitorRequest("POST", "update").then((monRes) => {
+            res.send(monRes);
             _running_update = false;
         });
     });
