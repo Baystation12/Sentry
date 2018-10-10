@@ -84,6 +84,14 @@ app.get("/view-serverlogs",function(req,res) {
     res.render("viewserverlog",{user:req.user});
 });
 
+app.get("/saverestore", function(req,res) {
+    if(!req.user) {
+        res.redirect("/")
+        return;
+    };
+    res.render("restoresave",{user:req.user});
+});
+
 
 app.get('/', function (req, res) {
     var flash = req.flash();
@@ -150,11 +158,14 @@ app.get('/player/:key', function (req, res) {
     }
 });
 
-function monitorRequest(method, endpoint) {
+function monitorRequest(method, endpoint, body) {
+    if (!body)
+	body = {}
     return rp({
         uri: config.monitor_url + "/" + endpoint,
         json: true,
         method: method,
+	formData: body,
         auth: {
             user: "auth",
             pass: config.monitor_key
@@ -242,6 +253,18 @@ app.get('/update-server', function (req, res) {
             _running_update = false;
         });
     });
+});
+app.post('/restore-save', function (req, res) {
+	if (!req.body.ckey || !req.body.date) {
+		res.send({
+			success: false,
+			message: "Missing arguments (date or key)"
+		});
+		return;
+	}
+	monitorRequest("POST", "restoresave", {ckey: req.body.ckey, date: req.body.date}).then((monRes) => {
+		res.send(monRes);
+	});
 });
 app.post('/get-byondaccount', function (req, res) {
     if (!req.body.ckey) {
