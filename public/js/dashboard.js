@@ -52,7 +52,6 @@ function isRunning() {
 $(function () { //shorthand document.ready function
     updatecommit()
     $.get("https://info.baystation12.net/status", function (data) {
-        data = JSON.parse(data);
         $("#player").html(data.players);
         $("#mode").html(data.mode);
         $("#admin").html(decodeURIComponent(data.roundduration));
