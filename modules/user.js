@@ -76,7 +76,7 @@ User.prototype.Authenticate = function (username, password) {
         });
 };
 User.prototype.IsStaff = function(groupId) {
-    var staffId = [3,27,24,26,22,23,28,32];
+    var staffId = [3,27,24,26,22,23,28,32,29];
     if(staffId.indexOf(groupId) != -1)
         return true;
     else
