@@ -83,7 +83,7 @@ User.prototype.IsStaff = function(groupId) {
         return false;
 };
 User.prototype.IsAdmin = function(groupId) {
-    var staffId = [3,23, 22, 28,32];
+    var staffId = [3,23, 22, 28,32, 27];
     if (staffId.indexOf(groupId) != -1)
         return true;
     else
