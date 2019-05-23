@@ -14,7 +14,7 @@
     "express": "^4.16.3",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.6",
-    "extend": "^3.0.1",
+    "extend": "^3.0.2",
     "gulp": "^3.9.1",
     "is-running": "^2.1.0",
     "mysql": "^2.15.0",
