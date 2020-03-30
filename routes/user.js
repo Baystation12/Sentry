@@ -7,38 +7,8 @@
 28 = headdev
 
 */
-module.exports = function (app, passport, User,pool) {
-    app.get('/signup', function (req, res) {
-        var flash = req.flash();
-        var error = flash["error"];
-        res.render("signup", {
-            error: error
-        });
-    });
-    app.get('/getavatar', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        };
-    //    User.GetUserInfo(req.query.user,req.user.userhash).done(function (dat) {
-    //        console.log(req);
-            User.GetUserAvatar(req.query.user, req.user.userhash).done(function (dat) {
-                res.send(dat);
-            });
-     //   });
-    });
-    app.post('/login',
-        passport.authenticate('local', {
-            successRedirect: '/',
-            failureRedirect: '/',
-            failureFlash: true
-        })
-    );
-    app.post('/search-users', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
+module.exports = function (app, User, pool, keycloak) {
+    app.post('/search-users', keycloak.protect('manage_players'), function (req, res) {
         if (!req.body.search) {
             pool.getConnection(function (err, connection) {
                 connection.query('SELECT * FROM `erro_player` ORDER BY `lastseen` DESC LIMIT 30', function (err, rows) {
@@ -76,19 +46,6 @@ module.exports = function (app, passport, User,pool) {
                     }
                     connection.release();
                 });
-            });
-        }
-    });
-    app.get('/profile', function (req, res) {
-        if (!req.user) {
-            res.redirect("/");
-            return;
-        }
-        if (req.query.user) {
-            res.sendStatus(500);
-        } else {
-            res.render("profile", {
-                user: req.user
             });
         }
     });

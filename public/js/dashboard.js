@@ -62,9 +62,8 @@ $(function () { //shorthand document.ready function
     }).done(function (data) {
         if (data.success === true) {
             $.each(data.rows, function (index, value) {
-                var str = '<div class="event"><div class="label"><img id=avatar_' + value.user_id + ' src=""></div><div class="content"><div class="summary">' + capitalize(value.message) + '<div class="date">' + moment(value.when).fromNow() + '</div></div></div></div>';
+                var str = '<div class="event"><div class="label"><img src="https://robohash.org/'+value.user_id+'?size50x50" class="ui mini rounded image"></div><div class="content"><div class="summary">' + capitalize(value.message) + '<div class="date">' + moment(value.when).fromNow() + '</div></div></div></div>';
                 $("#logFeed").append(str);
-                LoadAvatar(value.user_id, "avatar_" + value.user_id);
             });
         } else {
             alert(data.message);

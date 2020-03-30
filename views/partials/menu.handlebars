@@ -1,23 +1,28 @@
 <a href="/" class="header item">
     <img class="logo" src="images/logo.png"> Sentry
 </a>
+
 <a href="/" class="item">Dashboard</a>
+<a href="/view-logs" class="item">Sentry Logs</a>
+{{#if (hasRole "manage_players")}}
 <a href="/player" class="item">Players</a>
-<a href="/view-logs" class="item">Logs</a>
+{{/if}}
+{{#if (hasRole "restore_saves")}}
 <a href="/saverestore" class="item">Restore Saves</a>
-{{#if user.is_admin}}
+{{/if}}
+{{#if (hasRole "view_logs")}}
 <a href="/view-serverlogs" class="item">Server Logs</a>
+{{/if}}
+{{#if (hasRole "manage_books")}}
 <a href="/book" class="item">Books</a>
 {{/if}}
+<a href="/logout" class="item">Logout</a>
+
 <div class="right menu">
     <div class="item">
         <img id="selfavatar" src="">
     </div>
 </div>
-<script src ="js/menu.js"></script>
-<script>
-LoadAvatar({{user.user_id}},"selfavatar")
-</script>
 <head>
   <script src="/js/pace.min.js"></script>
   <link href="/css/pace.css" rel="stylesheet" />

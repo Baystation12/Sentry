@@ -1,9 +1,5 @@
 module.exports = function (app, pool) {
     app.get('/latest-log', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
         var options = {
             skip: 0,
             limit: 20
@@ -36,10 +32,6 @@ module.exports = function (app, pool) {
         });
     });
     app.get('/logs-pages', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
         var options = {
             pageCount: 20
         };
@@ -73,10 +65,6 @@ module.exports = function (app, pool) {
         });
     });
     app.get('/latest-bans', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
