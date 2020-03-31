@@ -107,11 +107,11 @@ app.get('/book/:key', function (req, res) {
             });
     }
 });
-app.get('/player', keycloak.protect('manage_players'), function (req, res) {
+app.get('/player', keycloak.protect('view_players'), function (req, res) {
     res.render("playersearch");
 });
 app.options('/player/:key');
-app.get('/player/:key', keycloak.protect('manage_players'), function (req, res) {
+app.get('/player/:key', keycloak.protect('view_players'), function (req, res) {
     if (!req.params.key) {
         res.redirect("/player");
     } else {
@@ -213,7 +213,7 @@ app.post('/restore-save', keycloak.protect('restore_saves'), function (req, res)
 		res.send(monRes);
 	});
 });
-app.post('/get-byondaccount', keycloak.protect('manage_players'), function (req, res) {
+app.post('/get-byondaccount', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.ckey) {
         res.send({
             success: false,
@@ -239,7 +239,7 @@ app.post('/get-byondaccount', keycloak.protect('manage_players'), function (req,
         };
     });
 });
-app.post('/get-statistics', keycloak.protect('manage_players'), function (req, res) {
+app.post('/get-statistics', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,
@@ -293,7 +293,7 @@ app.post('/get-statistics', keycloak.protect('manage_players'), function (req, r
     });
 });
 
-app.post('/get-location', keycloak.protect('manage_players'), function (req, res) {
+app.post('/get-location', keycloak.protect('view_players'), function (req, res) {
     var request = require('request');
     request('http://www.freegeoip.net/json/' + req.body.ip, function (error, response, body) {
         if (!error && response.statusCode == 200) {
@@ -301,7 +301,7 @@ app.post('/get-location', keycloak.protect('manage_players'), function (req, res
         }
     })
 });
-app.post('/get-bans', keycloak.protect('manage_players'), function (req, res) {
+app.post('/get-bans', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,
@@ -341,7 +341,7 @@ app.post('/get-bans', keycloak.protect('manage_players'), function (req, res) {
         });
     });
 });
-app.post('/get-whitelist', keycloak.protect('manage_players'), function (req, res) {
+app.post('/get-whitelist', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,

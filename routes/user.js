@@ -8,7 +8,7 @@
 
 */
 module.exports = function (app, User, pool, keycloak) {
-    app.post('/search-users', keycloak.protect('manage_players'), function (req, res) {
+    app.post('/search-users', keycloak.protect('view_players'), function (req, res) {
         if (!req.body.search) {
             pool.getConnection(function (err, connection) {
                 connection.query('SELECT * FROM `erro_player` ORDER BY `lastseen` DESC LIMIT 30', function (err, rows) {
