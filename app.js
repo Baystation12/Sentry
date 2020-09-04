@@ -2,17 +2,14 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
 var flash = require('connect-flash');
-var passport = require('passport');
 var exphbs = require('express-handlebars');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
-var bcrypt = require('bcryptjs');
 var app = express();
 var promise = require('promise');
 var rp = require('request-promise-native');
+var Keycloak = require('keycloak-connect');
 const url = require('url');
-//var FileStore = require('session-file-store')(session);
-require('shelljs/global');
 
 var fs = require('fs');
 var config = JSON.parse(fs.readFileSync('config/config.json', 'utf8'));
@@ -37,123 +34,90 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json())
 app.use(cookieParser());
 
+var memoryStore = new session.MemoryStore();
+
 app.use(session({
     secret: config.session_secret,
     saveUninitialized: false,
-    resave: false
-})); // session secret
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
+    resave: false,
+    store: memoryStore
+}));
+
+var keycloak = new Keycloak({store: memoryStore});
+app.use(keycloak.middleware());
 app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use(express.static(__dirname + '/public'));
 app.use("/player", express.static(__dirname + '/public'));
 app.use("/book", express.static(__dirname + '/public'));
-app.set('view engine', 'handlebars');
 
 require('./handlebars.js')(exphbs, app);
-var User = new(require("./modules/user.js"))(pool, passport, bcrypt);
+app.set('view engine', 'handlebars');
+
+var User = new(require("./modules/user.js"))(pool);
 var Logger = new(require("./modules/logger.js"))(pool);
 
-require("./routes/user.js")(app, passport, User, pool);
+require("./routes/user.js")(app, User, pool, keycloak);
 require("./routes/logs.js")(app, pool);
-require("./routes/books.js")(app, pool,Logger);
-require("./routes/serverlog.js")(app, config.log_path);
+require("./routes/books.js")(app, pool, Logger, keycloak);
+require("./routes/serverlog.js")(app, config.log_path, keycloak);
 
 
 
 _running_update = false;
 
 
+app.use(function(req,res,next){
+    res.locals.kauth = req.kauth;
+    next();
+})
 
-
+app.use("/", keycloak.protect("access"));
 
 app.get("/view-logs",function(req,res) {
-    if(!req.user) {
-        res.redirect("/")
-        return;
-    };
-    res.render("viewlog",{user:req.user});
+    res.render("viewlog");
 });
 
-app.get("/view-serverlogs",function(req,res) {
-    if(!req.user) {
-        res.redirect("/")
-        return;
-    };
-    res.render("viewserverlog",{user:req.user});
+app.get("/view-serverlogs", keycloak.protect("view_logs"), function(req,res) {
+    res.render("viewserverlog");
 });
 
-app.get("/saverestore", function(req,res) {
-    if(!req.user) {
-        res.redirect("/")
-        return;
-    };
-    res.render("restoresave",{user:req.user});
+app.get("/saverestore", keycloak.protect("restore_saves"), function(req,res) {
+    res.render("restoresave");
 });
 
 
 app.get('/', function (req, res) {
     var flash = req.flash();
-    if (!req.user) {
-        var error = flash["error"];
-        res.render("index", {
-            error: error
-        });
-    } else {
-        res.render("dashboard", {
-            user: req.user
-        });
-    }
+    res.render("dashboard");
 });
 
+app.use('/book', keycloak.protect('manage_books'));
 app.get('/book', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.redirect("/");
-        return;
-    }
-    res.render("booksearch", {
-        user: req.user
-    });
+    res.render("booksearch");
 });
 app.options('/book/:key');
 app.get('/book/:key', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.redirect("/");
-        return;
-    }
     if (!req.params.key) {
         res.redirect("/book");
     } else {
         if (req.params.key)
             res.render("book", {
                 id: req.params.key,
-                user: req.user
             });
     }
 });
-app.get('/player', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.redirect("/");
-        return;
-    }
-    res.render("playersearch", {
-        user: req.user
-    });
+app.get('/player', keycloak.protect('view_players'), function (req, res) {
+    res.render("playersearch");
 });
 app.options('/player/:key');
-app.get('/player/:key', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.redirect("/");
-        return;
-    }
+app.get('/player/:key', keycloak.protect('view_players'), function (req, res) {
     if (!req.params.key) {
         res.redirect("/player");
     } else {
         if (req.params.key)
             res.render("player", {
                 ckey: req.params.key,
-                user: req.user
             });
     }
 });
@@ -186,11 +150,7 @@ app.get('/is-server-alive', function (req, res) {
         res.send(data);
     });
 });
-app.get('/start-server',function(req,res) {
-    if (!req.user) {
-        res.sendStatus(403);
-        return;
-    }
+app.get('/start-server', keycloak.protect('manage_server'), function(req,res) {
     isRunning().then(function(data) {
         if(data.server)
         {
@@ -203,11 +163,7 @@ app.get('/start-server',function(req,res) {
         });
     });
 });
-app.get('/stop-server',function(req,res) {
-    if (!req.user) {
-        res.sendStatus(403);
-        return;
-    }
+app.get('/stop-server', keycloak.protect('manage_server'), function(req,res) {
     isRunning().then(function(data) {
         if(!data.server)
         {
@@ -221,20 +177,11 @@ app.get('/stop-server',function(req,res) {
     });
 });
 app.get('/current-commit', function (req, res) {
-    if (!req.user) {
-        res.sendStatus(403);
-        return;
-    }
-
     monitorRequest("GET", "commit").then((monRes) => {
         res.send(monRes.message);
     });
 });
-app.get('/update-server', function (req, res) {
-    if (!req.user) {
-        res.sendStatus(403);
-        return;
-    }
+app.get('/update-server', keycloak.protect('manage_server'), function (req, res) {
     if(_running_update)
     {
         res.send({success:false,message:"Server is already being updated"});
@@ -254,7 +201,7 @@ app.get('/update-server', function (req, res) {
         });
     });
 });
-app.post('/restore-save', function (req, res) {
+app.post('/restore-save', keycloak.protect('restore_saves'), function (req, res) {
 	if (!req.body.ckey || !req.body.date) {
 		res.send({
 			success: false,
@@ -266,7 +213,7 @@ app.post('/restore-save', function (req, res) {
 		res.send(monRes);
 	});
 });
-app.post('/get-byondaccount', function (req, res) {
+app.post('/get-byondaccount', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.ckey) {
         res.send({
             success: false,
@@ -292,14 +239,7 @@ app.post('/get-byondaccount', function (req, res) {
         };
     });
 });
-app.post('/get-statistics', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.send({
-            success: false,
-            message: "Not logged in"
-        });
-        return;
-    }
+app.post('/get-statistics', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,
@@ -353,7 +293,7 @@ app.post('/get-statistics', function (req, res) {
     });
 });
 
-app.post('/get-location', function (req, res) {
+app.post('/get-location', keycloak.protect('view_players'), function (req, res) {
     var request = require('request');
     request('http://www.freegeoip.net/json/' + req.body.ip, function (error, response, body) {
         if (!error && response.statusCode == 200) {
@@ -361,14 +301,7 @@ app.post('/get-location', function (req, res) {
         }
     })
 });
-app.post('/get-bans', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.send({
-            success: false,
-            message: "Not logged in"
-        });
-        return;
-    }
+app.post('/get-bans', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,
@@ -408,14 +341,7 @@ app.post('/get-bans', function (req, res) {
         });
     });
 });
-app.post('/get-whitelist', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.send({
-            success: false,
-            message: "Not logged in"
-        });
-        return;
-    }
+app.post('/get-whitelist', keycloak.protect('view_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,
@@ -457,14 +383,7 @@ app.post('/get-whitelist', function (req, res) {
 });
 
 
-app.post('/remove-whitelist', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.send({
-            success: false,
-            message: "Not logged in"
-        });
-        return;
-    }
+app.post('/remove-whitelist', keycloak.protect('manage_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,
@@ -505,14 +424,7 @@ app.post('/remove-whitelist', function (req, res) {
         });
     });
 });
-app.post('/add-whitelist', function (req, res) {
-    if (!req.user || req.user.rank < 1) {
-        res.send({
-            success: false,
-            message: "Not logged in"
-        });
-        return;
-    }
+app.post('/add-whitelist', keycloak.protect('manage_players'), function (req, res) {
     if (!req.body.key) {
         res.send({
             success: false,

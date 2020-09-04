@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS `web_log` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `user_id` char(36) NOT NULL, -- UUID
   `message` varchar(255) NOT NULL,
   `when` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

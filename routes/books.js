@@ -1,9 +1,5 @@
-module.exports = function (app, pool,Logger) {
-    app.get('/get-books', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
+module.exports = function (app, pool,Logger, keycloak) {
+    app.get('/get-books', keycloak.protect('manage_books'), function (req, res) {
         var options = {
             skip: 0,
             limit: 10
@@ -35,11 +31,7 @@ module.exports = function (app, pool,Logger) {
             });
         });
     });
-    app.get('/find-books', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
+    app.get('/find-books', keycloak.protect('manage_books'), function (req, res) {
         if(!req.query.title) {
             res.sendStatus(500);
             return;
@@ -67,11 +59,7 @@ module.exports = function (app, pool,Logger) {
             });
         });
     });
-    app.get('/total-books', function (req, res) {
-        if (!req.user) {
-            res.sendStatus(500);
-            return;
-        }
+    app.get('/total-books', keycloak.protect('manage_books'), function (req, res) {
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
@@ -95,8 +83,8 @@ module.exports = function (app, pool,Logger) {
             });
         });
     });
-    app.get('/get-book', function (req, res) {
-        if (!req.user || !req.query.id) {
+    app.get('/get-book', keycloak.protect('manage_books'), function (req, res) {
+        if (!req.query.id) {
             res.sendStatus(500);
             return;
         }
@@ -126,8 +114,8 @@ module.exports = function (app, pool,Logger) {
             });
         });
     });
-    app.post('/delete-book', function (req, res) {
-        if (!req.user || !req.body.id) {
+    app.post('/delete_book', keycloak.protect('manage_books'), function (req, res) {
+        if (!req.body.id) {
             res.sendStatus(500);
             return;
         }
