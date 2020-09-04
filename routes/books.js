@@ -127,7 +127,7 @@ module.exports = function (app, pool,Logger, keycloak) {
                 console.log(err);
                 res.send(500);
             }
-            Logger.log(req.user, req.user.username + " has deleted a book ("+req.body.id+")");
+            Logger.log(req, "%USER% has deleted a book ("+req.body.id+")");
             connection.query('DELETE FROM `library` WHERE id=?',[options.id], function (err, rows) {
                 if (err) {
                     var data = {

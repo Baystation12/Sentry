@@ -1,19 +1,19 @@
-function Logger(pool) {
-  this.pool = pool;
-};
-
-
-
-Logger.prototype.log = function (user,message) {
-    this.pool.getConnection(function (err, connection) {
-        connection.query('INSERT INTO `web_log`(`user_id`, `message`) VALUES (?,?) ', [user.user_id, message], function (err, rows) {
-            if (err) {
-                console.log("Log failed: " + err.message);
-            }
-            connection.release();
-        });
-    });
-};
+class Logger {
+    constructor(pool, keycloak) {
+        this.pool = pool;
+        this.keycloak = keycloak;
+    }
+    
+    async log(req, message) {
+        try {
+            let user_info = await this.keycloak.grantManager.userInfo(req.kauth.grant.access_token);
+            message = message.replace("%USER%", user_info.preferred_username);
+            await this.pool.query('INSERT INTO `web_log`(`user_id`, `message`) VALUES (?,?) ', [user_info.sub, message]);
+        } catch(err) {
+            console.log("Log failed: " + err.message);
+        }
+    }
+}
 
 
 module.exports = Logger;
