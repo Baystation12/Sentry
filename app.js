@@ -149,19 +149,18 @@ app.get('/is-server-alive', function (req, res) {
         res.send(data);
     });
 });
-app.get('/start-server', keycloak.protect('manage_server'), async (req,res) => {
-    await isRunning();
-    if(data.server)
-    {
-        res.send({success:false, message:"Server is already running.."});
-        return;
-    }
-    let user = await
-    Logger.log(req, "%USER% has started the server.")
-    return monitorRequest("POST", "start").then((monRes) => {
-        res.send(monRes);
-    });
-});
+
+app.get('/start-server', keycloak.protect('manage_server'), async function(req, res) {
+  const { server } = await isRunning()
+  if (server)
+    return res.send({ success: false, message: 'Server is already running.' })
+  const monitor = await monitorRequest('POST', 'start').catch(error => error)
+  if (monitor instanceof Error)
+    return res.send({ success: false, message: 'Unable to start server.' })
+  Logger.log(req, '%USER% has started the server.')
+  return res.send(monitor)
+})
+
 app.get('/stop-server', keycloak.protect('manage_server'), function(req,res) {
     isRunning().then(function(data) {
         if(!data.server)
