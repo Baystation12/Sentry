@@ -22,7 +22,6 @@ var pool = mysql.createPool({
     database: config.mysql_db,
     password: config.mysql_password
 });
-console.log(config);
 
 app.use(bodyParser.urlencoded({
     extended: false
@@ -51,11 +50,11 @@ app.use(express.static(__dirname + '/public'));
 app.use("/player", express.static(__dirname + '/public'));
 app.use("/book", express.static(__dirname + '/public'));
 
-require('./handlebars.js')(exphbs, app);
+require('./handlebars.js')(exphbs, app, keycloak);
 app.set('view engine', 'handlebars');
 
 var User = new(require("./modules/user.js"))(pool);
-var Logger = new(require("./modules/logger.js"))(pool);
+var Logger = new(require("./modules/logger.js"))(pool, keycloak);
 
 require("./routes/user.js")(app, User, pool, keycloak);
 require("./routes/logs.js")(app, pool);
@@ -150,17 +149,17 @@ app.get('/is-server-alive', function (req, res) {
         res.send(data);
     });
 });
-app.get('/start-server', keycloak.protect('manage_server'), function(req,res) {
-    isRunning().then(function(data) {
-        if(data.server)
-        {
-            res.send({success:false, message:"Server is already running.."});
-            return;
-        }
-        Logger.log(req.user, req.user.username + " has started the server..")
-        return monitorRequest("POST", "start").then((monRes) => {
-            res.send(monRes);
-        });
+app.get('/start-server', keycloak.protect('manage_server'), async (req,res) => {
+    await isRunning();
+    if(data.server)
+    {
+        res.send({success:false, message:"Server is already running.."});
+        return;
+    }
+    let user = await
+    Logger.log(req, "%USER% has started the server.")
+    return monitorRequest("POST", "start").then((monRes) => {
+        res.send(monRes);
     });
 });
 app.get('/stop-server', keycloak.protect('manage_server'), function(req,res) {
@@ -170,7 +169,7 @@ app.get('/stop-server', keycloak.protect('manage_server'), function(req,res) {
             res.send({success:false, message:"Server is already stopped.."});
             return;
         }
-        Logger.log(req.user, req.user.username + " has stopped the server..")
+        Logger.log(req, "%USER% has stopped the server.")
         return monitorRequest("POST", "stop").then((monRes) => {
             res.send(monRes);
         });
@@ -194,7 +193,7 @@ app.get('/update-server', keycloak.protect('manage_server'), function (req, res)
             return;
         }
         _running_update = true;
-        Logger.log(req.user, req.user.username + " has updated the server..")
+        Logger.log(req, "%USER% has updated the server.")
         return monitorRequest("POST", "update").then((monRes) => {
             res.send(monRes);
             _running_update = false;
@@ -398,7 +397,7 @@ app.post('/remove-whitelist', keycloak.protect('manage_players'), function (req,
         });
         return;
     }
-    Logger.log(req.user, req.user.username + " has removed " + req.body.key + " whitelisting for " + req.body.race)
+    Logger.log(req, "%USER% has removed " + req.body.key + "'s whitelist for " + req.body.race)
     pool.getConnection(function (err, connection) {
         if (err) {
             res.send({
@@ -439,7 +438,7 @@ app.post('/add-whitelist', keycloak.protect('manage_players'), function (req, re
         });
         return;
     }
-    Logger.log(req.user, req.user.username + " has whitelisted " + req.body.key + " for " + req.body.race)
+    Logger.log(req, "%USER% has whitelisted " + req.body.key + " for " + req.body.race)
     req.body.key = req.body.key.toLowerCase();
     req.body.race = req.body.race.toLowerCase();
     pool.getConnection(function (err, connection) {
