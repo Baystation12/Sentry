@@ -114,7 +114,7 @@ module.exports = function (app, pool,Logger, keycloak) {
             });
         });
     });
-    app.post('/delete_book', keycloak.protect('manage_books'), function (req, res) {
+    app.post('/delete-book', keycloak.protect('manage_books'), function (req, res) {
         if (!req.body.id) {
             res.sendStatus(500);
             return;
